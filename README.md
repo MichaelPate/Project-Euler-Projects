@@ -8,3 +8,5 @@ used.
 
 Please don't peruse these solutions to cheat! Use them as a reference or perhaps enjoy their "beauty" but they aren't here as
 a quick answer for cheaters. Don't be that guy.
+
+https://projecteuler.net/about
