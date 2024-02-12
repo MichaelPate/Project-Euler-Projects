@@ -1,0 +1,428 @@
+#include <iostream>
+#include <stdio.h>
+#include <string>
+#include <iomanip>
+#include <sstream>
+#include <set>
+#include <algorithm>
+#include <vector>
+
+using namespace std;
+
+#define MAXIMUM_CANDIDATE 1000 //832(831=mine), 984(983=correct)
+#define PLACE_ATTEMPTS 20000
+
+
+int longInverse(int* output, int outputSize, int divisor);
+bool exists(int* arrayInput, int size, int test);
+
+/*
+For each candidate, generate PALCE_ATTEMPTS nubmer of digits
+for that list of digits, create a vector of vectors.
+Start at each position in the vector and advance through until you find the same digit
+
+idea https://stackoverflow.com/questions/28847164/how-to-find-repeating-sequence-of-integers-in-an-array-of-integers
+*/
+
+
+int main()
+{
+    vector<int> quotientDigits;
+    int sequenceLengths[PLACE_ATTEMPTS] = {0};
+    int maxLength = 0;
+    int maxCandidate = 0;
+
+    // each idx in sequenceLengths describes
+    // how many indexes in quotientDigits were traversed before the 
+    // element at quotitientDigits[idx] was found again.
+    // if seuqneceLengths[idx] == PLACE_ATTEMPTS - (idx + 1), then quotientDigits[idx] is unique
+
+    for (int candidate = 2; candidate < MAXIMUM_CANDIDATE; candidate++)
+    {
+        cout << "Current candidate: " << candidate << endl;
+
+        // Clear storage space
+        quotientDigits.clear();
+        fill_n(sequenceLengths, PLACE_ATTEMPTS, 0);
+
+        // Generate our quotient digits for the candidate
+        int divisor = 10;
+        for (int p = 0; p < PLACE_ATTEMPTS; p++)
+        {
+            int quotient = divisor / candidate;
+            divisor -= quotient * candidate;
+            divisor *= 10;
+            quotientDigits.push_back(quotient);
+        }
+
+        //cout << "Quotient Results: " << endl;
+        //for (int x : quotientDigits)
+        //{
+        //    cout << x << " ";
+        //}
+        //cout << endl;
+
+        // Start at each element in quotientDigits and traverse it until we find the same number
+        // and then record the distance in sequenceLengths
+        for (int start_idx = 1; start_idx < PLACE_ATTEMPTS - 1; start_idx++)
+        {
+            int looking_for = quotientDigits[start_idx];
+            
+            //cout << " " << looking_for << ":";
+
+            // Find where we get the same looking_for again
+            int second_idx = start_idx + 1;
+            while (quotientDigits[second_idx] != looking_for && second_idx < PLACE_ATTEMPTS)
+            {
+                second_idx++;
+            }
+
+            int traverse = 0;
+
+            while (traverse < second_idx - start_idx)
+            {
+                // compare [start_idx+traverse] and [second_idx+traverse]
+                // if at any time we find a loser, then break and consider
+                // current traverse as the sequence length
+                if (quotientDigits[start_idx + traverse] != quotientDigits[second_idx + traverse])
+                {
+                    //sequenceLengths[start_idx] = traverse;
+                    break;
+                }
+                
+                traverse++;
+            }
+            sequenceLengths[start_idx] = traverse;
+/*
+            int shadow_idx = start_idx;
+            int next_idx = start_idx + 1;
+            while (next_idx < PLACE_ATTEMPTS && shadow_idx < second_idx)
+            {
+                if (quotientDigits[next_idx] == quotientDigits[])
+                shadow_idx++;
+                next_idx++;
+            }
+
+
+
+            for (int second_idx = start_idx + 1; second_idx < PLACE_ATTEMPTS; second_idx++)
+            {
+                if (quotientDigits[second_idx] == looking_for)
+                {
+
+                    // We found our digit again, so keep the length in sequenceLengths
+                    sequenceLengths[start_idx] = second_idx - start_idx;
+                    break;
+                }
+            }
+*/
+            //cout << sequenceLengths[start_idx];
+        }
+        //cout << endl;
+
+        // Analyze sequenceLengths for a maximum
+        int maxSequenceLength = 0;
+        for (int length : sequenceLengths)
+        {
+            if (length > maxSequenceLength)
+            {
+                maxSequenceLength = length;
+            }
+        }
+
+        //cout << "Maximum sequence length: " << maxSequenceLength << endl;
+
+        // Analyze this maximum to see if its a global max.
+        if (maxSequenceLength > maxLength)
+        {
+            maxLength = maxSequenceLength;
+            maxCandidate = candidate;
+            
+        }
+
+    }
+
+    cout << " max candidate " << maxCandidate << " sequence " << maxLength;
+
+    return 0;
+
+
+
+
+    int candidate = 0;
+    //int maxCandidate = 0;
+    //int maxLength = 0;
+    set<int> maxSequence;
+
+    for (candidate = 1; candidate < MAXIMUM_CANDIDATE; candidate++)
+    {
+        set<int> quotientSequence;
+        pair<set<int>::iterator,bool> inserted;
+
+        // Take the inverse out to so many places
+        // and add each quotient to the vector only if it does not already exist.
+        // Once we run across a number that exists in the vector, quit out and get
+        // the length of the vector. Compare that to maxLength, and if its larger,
+        // update maxLength and maxCandidate.
+        int divisor = 10;   // We start with divisor as 10 for the first 0.1 place
+        cout << "Trying " << candidate << " | ";
+        for (int p = 0; p < PLACE_ATTEMPTS; p++)
+        {
+            int quotient = divisor / candidate;
+            divisor -= quotient * candidate;
+            divisor *= 10;
+            
+            inserted = quotientSequence.insert(quotient);
+            cout << quotient << " ";
+            if (inserted.second == false)
+            {
+                // No element was inserted, it already exists in the set. 
+                // This means we found a duplicate.
+                int currentSize = quotientSequence.size();
+                if (currentSize > maxLength)
+                {
+                    maxLength = currentSize;
+                    maxCandidate = candidate;
+
+                    maxSequence.clear();
+                    maxSequence.insert(quotientSequence.begin(), quotientSequence.end());
+                    goto gotoNextCandidate;
+                }
+            }
+        }
+
+        gotoNextCandidate:
+        cout << " Done. \n";
+    }
+
+    cout << "max sequence found at " << maxCandidate << " with length " << maxLength << endl;
+    for (int const& x : maxSequence)
+    {
+        cout << x << " ";
+    }
+
+
+    return 0;
+
+
+
+
+
+
+    /*
+    // Generate our storage for our quotient
+    
+
+    int maxLength = 0;
+    int maxCandidate = 0;
+
+    for (int candidate = 1; candidate <= MAXIMUM_CANDIDATE; candidate++)
+    {
+        
+        
+        int quotient[ARRAY_SIZE] = { [0 ... ARRAY_SIZE] = -1 };
+        //int checked[ARRAY_SIZE];
+
+        int length = longInverse(quotient, ARRAY_SIZE, candidate);
+        if (length > maxLength)
+        {
+            maxLength = length;
+            maxCandidate = candidate;
+        }
+
+        //cout << "candidate " << candidate << " length " << longInverse(quotient, ARRAY_SIZE, candidate) << endl;
+        /*
+        
+
+        // Perform the long inverse calculation and get all the digits
+        longInverse(quotient, ARRAY_SIZE, candidate);
+
+        int checkedIdx = 0;
+        for (int idx = 0; idx < ARRAY_SIZE; idx++)
+        {
+            if (exists(checked, ARRAY_SIZE, quotient[idx]))
+            {
+                // The index in quotient does not exist in checked, so add it
+                checked[checkedIdx] = quotient[idx];
+                checkedIdx++;
+            }
+            else
+            {
+                // We found this number before, so duck out and check next number
+                if (idx > maxLength)
+                {
+                    maxLength = idx;
+                    maxCandidate = candidate;
+                }
+
+                goto nextCandidate;
+            }
+        }
+
+        nextCandidate:
+        */
+    //}
+
+    //cout << maxCandidate << endl;
+    /*
+        // now we need to detect when we get repeating values
+        int threshold = 10; // allowable number of repeating digits before we assume it goes on forever
+        int repeatCount = 0;
+        for (int idx = 1; idx < size; idx++)
+        {
+            if (test[idx] == test[idx-1])
+            {
+                repeatCount++;
+            }
+            else
+            {
+                repeatCount = 0;
+            }
+
+            if (repeatCount > threshold)
+            {
+                // We found a repeating pattern
+                cycleLengths[candidate] = 1;
+                cout << "candidate " << candidate << " has a cycle size of 1." << endl;
+                goto tryNextCandidate;
+            }
+        }
+
+        tryNextCandidate:
+    
+    */
+    
+    /*
+    // The only way to really do this is using 'long double'
+    // which gives access to 80-bit extended precision
+    string quotientString = "";
+    long double quotient = 0.0f;
+    int maxPatternLength = 0;
+    for (long double candidate = 1.0f; candidate <= MAXIMUM; candidate++)
+    {
+        // generate a string with the full quotient
+        quotient = 1.0f / candidate;
+        stringstream quotientStream;
+        quotientStream << fixed << setprecision(STRING_SIZE) << quotient;
+        quotientString = quotientStream.str();
+
+        // remove the "0." that will be at the beginning of the string
+        // so we have the quotient as a regular number string
+        quotientString.erase(0, 2);
+
+        // detect when there is lots of the same character
+        // if the number continues or not
+        //cout << quotientString << endl;
+        int sameCount = 0;
+        for (int idx = STRING_SIZE - 1; idx >= 0; idx--)
+        {   
+            // Subtract 48 to offset the ASCII value to its real number counterpart
+            if (int(quotientString[idx] - 48) != int(quotientString[idx + 1] - 48))
+            {
+                sameCount = 0;
+            }
+            else
+            {
+                sameCount++;
+            }
+
+            if (sameCount >= THRESHOLD)
+            {
+                // our candidate denominator had too many repeating digits
+                goto endOfNumber;
+            }
+        }
+
+        cout << "candidate: " << candidate << "\tquotient: " << quotientString << "\tlength: ";
+
+        // Here we have a number that doesnt have lots of zeros and we can find a pattern
+        //int patternLength = 1;
+        for (int patLength = 2; patLength < STRING_SIZE; patLength++)
+        {
+            // We are assuming the pattern length is 1
+            if (int(quotientString[1]) == int(quotientString[patLength]))
+            {
+                cout << patLength;
+                // assume we found a pattern so just stop here
+                //cout << "pattern size = " << patLength - 1 << endl;
+                if (patLength - 1 > maxPatternLength)
+                {
+                    maxPatternLength = patLength - 1;
+                    
+                }
+                goto endOfNumber;
+            }
+            cout << endl;
+        }
+        endOfNumber:
+    }
+
+    cout << maxPatternLength << endl;
+    */
+    //return 0;
+    //*/
+}
+
+
+// Takes inverse of divisor place-wise and fills in output
+// This way we can generate an array with "infinite" precision, no rounding
+// in output array, its assumed the first digit is the first decimal, ie assume "0." before
+// the contents of output
+// returns the cycle length of the inverse
+int longInverse(int* output, int outputSize, int divisor)
+{
+    // Place is our decimal place
+    // 0.0 for place 0, 0.00 for place 1, etc
+    int cycleCount = 0;
+    int dividend = 10;
+    for (int place = 0; place < outputSize; place++)
+    {
+        // how many times does divisor go into 10?
+        int quotient = dividend / divisor;
+        //output[place] = quotient;
+
+        // now we need to check all the other items so far and see if it exists
+        if (exists(output, place, quotient) == false)
+        { 
+            // it doesnt, the pattern repeats, all good
+            output[place] = quotient;
+        }
+        else
+        {
+            // we found it in the array, so we can return place as our cycle length
+            //cycleCount = place;
+            if (quotient == 0)
+            {
+                return place - 1;
+            }
+            return place;
+        }
+
+        dividend -= quotient * divisor;
+        dividend *= 10;
+    }
+}
+
+// Searches array arrayInput[size] for test, returns true if found and false otherwise.
+bool exists(int* arrayInput, int size, int test)
+{
+    for (int idx = 0; idx < size; idx++)
+    {
+        if(arrayInput[idx] == test)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+/*
+
+Start with 10, how many times does divisor go into that?
+the number of times gives us our first decimal
+take divisor * num times and subtract that from 10
+take that remaining number and multiply it by 10
+repeat for each decimal
+
+
+*/
