@@ -3,29 +3,34 @@ import math
 def isPentagonal(testNum):
     # our formula is Pn = n(3n-1)/2
     # n = (1/6)(sqrt(24*P+1)+1) and if thats an integer, then our number is pentagonal
-    n = (1/6)*(math.sqrt(24*testNum+1)+1)
+    #n = (1/6)*(math.sqrt((24*testNum)+1)+1)
+
+    n = math.sqrt(((2 * testNum) + 1) / 3)
 
     # It can be slightly off due to floating point math
-    if n % 1 < 0.0001:
+    if n == int(n):
         return True
     else:
         return False
     
+def genPentagonal(n):
+    return int(n * (3 * n - 1) / 2)
+    
 def main():
+
     # generate a big list of pentagonal numbers
     # now go through all combinations and find their difference.
     # for each combination, check their 
+    pentagonalNumbers = []
+    for i in range(4000):
+        pentagonalNumbers.append(genPentagonal(i))
+        print(isPentagonal(i))
 
-    print(isPentagonal(46651606))
     while True:
         None
-    pentagonalNumbers = []
-    for i in range(100000000):
-        if isPentagonal(i):
-            pentagonalNumbers.append(i)
 
     # go through each combination
-    min_D = 1000
+    min_D = 10**30
     for num1_idx in range(len(pentagonalNumbers)):
         for num2_idx in range(len(pentagonalNumbers)):
             
