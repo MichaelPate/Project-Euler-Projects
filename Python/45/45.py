@@ -6,6 +6,8 @@
 # See that T285 = P165 = H143 = 40755
 # Find the next triangle number that is also pentagonal and hexagonal
 
+# Solved on 2-4-2026
+
 import math
 
 def generateTriangleN(n):
@@ -38,4 +40,5 @@ def main():
             print(triangleNum)
 
 if __name__ == '__main__':
+
     main()
