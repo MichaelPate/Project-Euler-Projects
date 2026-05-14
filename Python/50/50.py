@@ -57,15 +57,19 @@ def findSums(primes):
     maxSum = 0
     maxCount = 0
     for i, prime in enumerate(primes):
+        # have an offset from index 0 that will slowly move up towards our current position (i) in primes
         offsetIdx = 0
         #print(prime)
         while offsetIdx < i // 2:
             sum = 0
             count = 0
+            # from our starting window, build a sum by adding count (1) each time until a sum is made 
             while sum <= prime:
                 if sum == prime:
+                    # We met exactly, so break out and lets see if our streak was bigger than the max
                     break
                 if sum > prime:
+                    # Though if we overshoot, break out and make sure count cant be above maxCount
                     count = -1
                     break
                 sum += primes[count+offsetIdx]
